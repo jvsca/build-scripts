@@ -54,7 +54,7 @@ jobs:
         "@ | Set-Content $ProjectPathname
 
         $Version = '2.0.0'
-        $ScriptFilename = 'Update-Version.ps1'
+        $ScriptFilename = 'UpdateProject-Version.ps1'
         & "./$ScriptFilename" -ProjectPathname $ProjectPathname -Version $Version
 
         # Define the tags to update.
