@@ -1,0 +1,73 @@
+name: Validate Scripts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-scripts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+    - name: Checkout scripts
+      uses: actions/checkout@v4
+
+    - name: Test Update-Version.ps1
+      run: |
+        $Version    = '1.2.3'
+        $NewVersion = '1.2.4'
+        $ScriptFilename = 'Update-Version.ps1'
+
+        $ResultVersion = & "./$ScriptFilename" -Version $Version
+        if (-not $ResultVersion)
+        {
+          throw "'$ScriptFilename' did not return a value."
+        }
+
+        if ($ResultVersion -notmatch $NewVersion)
+        {
+            throw "Version was not updated correctly, Expected = '$NewVersion', Actual = '{$ResultVersion}'."
+        }
+
+        Write-Host "'$ScriptFilename' updated Version successfully from '{$Version}' to '{$ResultVersion}'."
+
+    - name: Test Update-ProjectVersion.ps1
+      run: |
+        # Create a dummy .csproj file.
+        $ProjectPathname = "./TestApp/TestApp.csproj"
+        New-Item -ItemType Directory -Path "./TestApp" -Force | Out-Null
+        @"
+        <Project Sdk="Microsoft.NET.Sdk">
+          <PropertyGroup>
+            <OutputType>Exe</OutputType>
+            <TargetFramework>net9.0</TargetFramework>
+            <Version>0.0.0</Version>
+            <AssemblyVersion>0.0.0</AssemblyVersion>
+            <FileVersion>0.0.0</FileVersion>
+          </PropertyGroup>
+        </Project>
+        "@ | Set-Content $ProjectPathname
+
+        $Version = '2.0.0'
+        $ScriptFilename = 'Update-Version.ps1'
+        & "./$ScriptFilename" -ProjectPathname $ProjectPathname -Version $Version
+
+        # Define the tags to update.
+        $VersionTags = @('Version', 'AssemblyVersion', 'FileVersion')
+
+        # Validate the version was updated.
+        [xml]$Xml = Get-Content $ProjectPathname
+        foreach ($Tag in $VersionTags)
+        {
+            $ResultVersion = $Xml.Project.PropertyGroup.$Tag
+            if ($ResultVersion -notmatch $Version)
+            {
+              throw "Version was not updated correctly for tag '$Tag', Expected = '$Version', Actual = '{$ResultVersion}'."
+            }
+            Write-Host "Version updated successfully for tag '$Tag'."
+        }
