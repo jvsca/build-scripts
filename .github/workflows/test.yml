@@ -31,10 +31,10 @@ jobs:
 
         if ($ResultVersion -notmatch $NewVersion)
         {
-            throw "Version was not updated correctly, Expected = '$NewVersion', Actual = '{$ResultVersion}'."
+            throw "Version was not updated correctly, Expected = '$NewVersion', Actual = '$ResultVersion'."
         }
 
-        Write-Host "'$ScriptFilename' updated Version successfully from '{$Version}' to '{$ResultVersion}'."
+        Write-Host "'$ScriptFilename' updated Version successfully from '$Version' to '$ResultVersion'."
 
     - name: Test Update-ProjectVersion.ps1
       run: |
@@ -67,7 +67,7 @@ jobs:
             $ResultVersion = $Xml.Project.PropertyGroup.$Tag
             if ($ResultVersion -notmatch $Version)
             {
-              throw "Version was not updated correctly for tag '$Tag', Expected = '$Version', Actual = '{$ResultVersion}'."
+              throw "Version was not updated correctly for tag '$Tag', Expected = '$Version', Actual = '$ResultVersion'."
             }
             Write-Host "Version updated successfully for tag '$Tag'."
         }
